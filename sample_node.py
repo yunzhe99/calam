@@ -269,10 +269,7 @@ class sample_feature(Dataset):
         self.sample_list = sample_list
         self.weight_index = weight_index
         self.need_image = need_image
-        self.transform = transforms.Compose([transforms.Resize(256),  # 将图像调整为256×256像素
-                                             transforms.CenterCrop(224),  # 将图像中心裁剪出来，大小为224×224像素
-                                             transforms.ToTensor()  # 将图像转换为PyTorch张量（tensor）数据类型
-                                             ])
+        self.transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224), transforms.ToTensor()])
 
     def __len__(self):
         return len(self.sample_list)
