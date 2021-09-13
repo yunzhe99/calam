@@ -1,16 +1,9 @@
 import os
-import sys
-import argparse
 import joblib
 import yaml
 import random
 import shutil
 import heapq
-import torchvision
-
-# sys.path.append('../yolov5')
-
-# from test_for_model import test
 
 import torch
 import collections
@@ -22,156 +15,17 @@ from torch.utils.data import DataLoader
 from podm.podm import get_pascal_voc_metrics, BoundingBox
 
 from config import Config
-from my_utils.data_io import coco_c, Feature_set, gen_class, classify_folder_gen_train, classify_folder_gen_val, \
-    dataset_gen_individual_train, dataset_gen_individual_val
+from my_utils.data_io import coco_c, Feature_set
 from my_utils.preprocess import feature_getting
 from task_model import model_list_train, Net, train_from_feature, train_from_image
 from sample_node import sample_node, sample_feature
 from test_batch_loader import test_batch_loader, load_label
-from sklearn.ensemble import AdaBoostRegressor
-from sklearn.decomposition import PCA
-from sklearn import svm, metrics
-from sklearn.metrics import mean_squared_error
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
-def model_eval():
-    map_list = []
-    for model_data in Config.model_list:
-        map_list_for_model = []
-        for weight in Config.weight_list:
-            result, _, _ = test(data=model_data, weights=weight, opt=opt)
-            map_list_for_model.append(result[2])
-        map_list.append(map_list_for_model)
-
-    map_list = np.array(map_list)
-    np.save('map_list.npy', map_list)
-    return map_list
-
-
-def train_main():
-    # 获取图片代表集
-    sample_train = coco_c(Config.sample_train)
-    sample_val = coco_c(Config.sample_val)
-
-    train_loader = DataLoader(sample_train, batch_size=Config.batch_size, shuffle=True)
-    val_loader = DataLoader(sample_val, batch_size=Config.batch_size, shuffle=True)
-
-    # 代表集特征抽取
-    if os.path.exists('feature_set_train.npy') and os.path.exists('label_set_train.npy') and \
-            os.path.exists('feature_set_val.npy') and os.path.exists('label_set_val.npy') and 0:
-        feature_set_train = np.load('feature_set_train.npy')
-        label_set_train = np.load('label_set_train.npy')
-        feature_set_val = np.load('feature_set_val.npy')
-        label_set_val = np.load('label_set_val.npy')
-    else:
-        feature_set_train, label_set_train = feature_getting(train_loader, train=True)  # todo 修改为函数外文件读写
-        feature_set_val, label_set_val = feature_getting(val_loader, train=False)
-
-    np.save('feature_set_train.npy', feature_set_train)
-    np.save('label_set_train.npy', label_set_train)
-    np.save('feature_set_val.npy', feature_set_val)
-    np.save('label_set_val.npy', label_set_val)
-
-    # # 模型性能验证
-    # if os.path.exists('map_list.npy') and 0:
-    #     map_list = np.load('map_list.npy')
-    # else:
-    #     map_list = model_eval()
-    #
-    # model_map = map_list.T
-
-    # # 输入数量控制
-    # length = 500
-    # feature_set_train = feature_set_train[0:length]
-    # label_set_train = label_set_train[0:length]
-    # feature_set_val = feature_set_val[0:length]
-    # label_set_val = label_set_val[0:length]
-
-    # 模型选择器生成
-
-    if os.path.exists('model_chooser_list.m') and 0:
-        _model_chooser_list = joblib.load('model_chooser_list.m')
-    else:
-        _model_chooser_list = model_list_train(model_map, feature_set_train, label_set_train,
-                                            feature_set_val, label_set_val)
-    return _model_chooser_list
-
-
-def test_main(_model_chooser_list):
-    # 模型选择结果
-
-    # file = open('base_model/coco_c_7_2.yaml')
-    # y = yaml.load(file, Loader=yaml.FullLoader)
-    #
-    # file_target = open(Config.yaml_dir, 'w')
-    # yaml.dump(y, file_target)
-
-    for data_batch in Config.model_list:
-        # 通过yaml文件，模拟不同数据集的读取
-        f = open(data_batch)
-        y = yaml.load(f, Loader=yaml.FullLoader)
-
-        data_dir_for_feature = y['val'] + '*.jpg'
-
-        print("当前数据集为：")
-        print(data_dir_for_feature)
-
-        data_val = coco_c(data_dir_for_feature)
-        # 抽取图片特征
-        data_val_loader = DataLoader(data_val, batch_size=Config.batch_size, shuffle=True)
-        feature_data_val, label_data_val = feature_getting(data_val_loader, train=False)
-
-        # 特征集构建
-        Feature_val = Feature_set(feature_data_val, train=False)
-        Feature_val_loader = DataLoader(Feature_val, batch_size=Config.batch_size, shuffle=True)
-
-        # 每个模型都过一遍
-        score_max = 0
-        best_model_index = 0
-        model_index = 0  # 初始化model_index
-        for model_chooser in _model_chooser_list:
-            # 加载模型
-            model = Net()
-            model.load_state_dict(model_chooser)
-            model = model.cuda()
-            model.eval()
-            score = 0  # 模型得分，以当前数据集被选择的次数作为得分
-            for data in tqdm(Feature_val_loader):
-                feature, _ = data
-                feature = feature.cuda()
-                feature = feature.float()
-                out = model(feature)
-                _, pred = torch.max(out, 1)
-                pred = pred.cpu()
-                pred = pred.detach().numpy().tolist()
-                d = collections.Counter(pred)
-                score = score + d[1]
-
-                if score_max < score:
-                    score_max = score
-                    best_model_index = model_index
-
-            print("当前模型得分：")
-            print(score)
-            print("\n")
-            print("当前最优模型为：")
-            print(best_model_index)
-            print("\n")
-            print("该模型得分：")
-            print(score_max)
-            print("\n")
-
-            model_index = model_index + 1
-
-        print("最终结果：")
-        print(best_model_index)
-        print(score_max)
-
-
 def sample_list_gen():
-    # 代表集生成
+    # sample generation
 
     sample_index = 0
     sample_list = []
@@ -968,11 +822,6 @@ def unseen_data_detection():
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    #
-    # parser.add_argument('--single-cls', action='store_true', help='treat as single-class dataset')
-    #
-    # opt = parser.parse_args()
 
     # 数据集地址
     task_folder_list = Config.dataset_train_list
@@ -995,20 +844,3 @@ if __name__ == "__main__":
     # result_test(force_reload=False)
     # #
     # metric_calculation()
-
-    # task_global_attribute()
-
-    # 训练模型选择器
-    # model_chooser_list = train_main()
-
-    # 模型选择器测试
-    # test_main(model_chooser_list)
-
-    # gen_class()  # 生成数据集
-
-    # 得到全场景模型训练集以及标签 4
-    # classify_folder_gen_train()
-    # classify_folder_gen_val()
-
-    # dataset_gen_individual_train()
-    # dataset_gen_individual_val()
