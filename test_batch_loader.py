@@ -11,10 +11,6 @@ from torch.utils.data import Dataset
 from podm.podm import get_pascal_voc_metrics, BoundingBox
 from PIL import Image
 
-from pyclustering.cluster.center_initializer import kmeans_plusplus_initializer
-from pyclustering.utils.metric import euclidean_distance, distance_metric, type_metric
-from pyclustering.cluster.kmeans import kmeans, kmeans_visualizer
-
 from sklearn.cluster import KMeans
 
 from sample_node import sample_node, bbox_2leftup_2rightdown
@@ -27,9 +23,9 @@ class sample_test(Dataset):
     def __init__(self, sample_list):
         self.sample_list = sample_list
         self.transform = transforms.Compose([transforms.Resize(256),  # 将图像调整为256×256像素
-                                             transforms.CenterCrop(224),  # 将图像中心裁剪出来，大小为224×224像素
-                                             transforms.ToTensor()  # 将图像转换为PyTorch张量（tensor）数据类型
-                                             ])
+                                            transforms.CenterCrop(224),  # 将图像中心裁剪出来，大小为224×224像素
+                                            transforms.ToTensor()  # 将图像转换为PyTorch张量（tensor）数据类型
+                                            ])
 
     def __len__(self):
         return len(self.sample_list)
@@ -41,12 +37,6 @@ class sample_test(Dataset):
         image = self.transform(image)
         label = self.sample_list[idx].label_dir
         return [image_dir, image, feature], label
-
-
-def distance_for_sample(point1, point2):
-    feature1 = point1.feature
-    feature2 = point2.feature
-    return euclidean_distance(feature1, feature2)
 
 
 class test_batch_loader:

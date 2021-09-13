@@ -90,10 +90,7 @@ class Config:
 
     # labelset_train_list = ['/home/lion/yunzhe/cal_coco_kitti_city_crowd_night/labels/']
 
-    labelset_train_list = ['/home/lion/yunzhe/taskset/labels/task1/', '/home/lion/yunzhe/taskset/labels/task2/',
-                           '/home/lion/yunzhe/taskset/labels/task3/', '/home/lion/yunzhe/taskset/labels/task4/',
-                           '/home/lion/yunzhe/taskset/labels/task5/', '/home/lion/yunzhe/taskset/labels/task6/',
-                           '/home/lion/yunzhe/taskset/labels/task7/', '/home/lion/yunzhe/taskset/labels/task8/']
+    labelset_train_list = ['/home/lion/yunzhe/taskset/labels/task1/', '/home/lion/yunzhe/taskset/labels/task2/', '/home/lion/yunzhe/taskset/labels/task3/', '/home/lion/yunzhe/taskset/labels/task4/', '/home/lion/yunzhe/taskset/labels/task5/', '/home/lion/yunzhe/taskset/labels/task6/', '/home/lion/yunzhe/taskset/labels/task7/', '/home/lion/yunzhe/taskset/labels/task8/']
 
     # dataset_val_list = ['/mnt/disk1/yunzhe/TJU-DHD/dhd_campus_train_images/dhd_campus/images/train/',
     #                     '/mnt/disk1/yunzhe/TJU-DHD/dhd_campus/images/val/',
@@ -140,12 +137,7 @@ class Config:
     #                './dhd-traffic/traffic-task6-e.pt', './dhd-traffic/traffic-task7-e.pt',
     #                './dhd-traffic/traffic-task8-e.pt']
 
-    weight_list = ['/home/lion/yunzhe/calam/dhd-traffic/traffic-all.pt',
-                   '/home/lion/yunzhe/calam/dhd-traffic/round1.pt',
-                   '/home/lion/yunzhe/calam/dhd-traffic/round2.pt',
-                   '/home/lion/yunzhe/calam/dhd-traffic/round3.pt',
-                   '/home/lion/yunzhe/calam/dhd-traffic/round4.pt',
-                   '/home/lion/yunzhe/calam/dhd-traffic/round5.pt']
+    weight_list = ['/home/lion/yunzhe/calam/dhd-traffic/traffic-all.pt', '/home/lion/yunzhe/calam/dhd-traffic/round1.pt', '/home/lion/yunzhe/calam/dhd-traffic/round2.pt', '/home/lion/yunzhe/calam/dhd-traffic/round3.pt', '/home/lion/yunzhe/calam/dhd-traffic/round4.pt', '/home/lion/yunzhe/calam/dhd-traffic/round5.pt', '/home/lion/yunzhe/calam/dhd-traffic/round6.pt']
 
     # weight_list = ['/home/lion/yunzhe/calam/dhd-traffic/traffic-all.pt',
     #                '/home/lion/yunzhe/calam/dhd-traffic/round1o.pt',
@@ -155,9 +147,6 @@ class Config:
 
     # weight_list = ['./models_v/kitti_v.pt', './models_v/caltech_v.pt', './models_v/night.pt',
     #                './models_v/coco.pt', './models_v/crowd_v.pt']
-
-    # weight_list = ['./models_c8/kitti_c8_v.pt', './models_c8/caltech_c8_v.pt', './models_c8/night_c8_v.pt',
-    #                './models_c8/coco.pt', './models_c8/crowdhuman_c8_v.pt']
 
     # weight_list = ['./models_c8/caltech_c8_v.pt', './models_c8/coco.pt', './models_c8/crowdhuman_c8_v.pt',
     #                './models_c8/kitti_c8_v.pt', './models_c8/night_c8_v.pt',
@@ -199,42 +188,7 @@ class Config:
     # 批处理yaml文件
     yaml_dir = 'base_model/test.yaml'
 
-    # nico数据集地址
-    nico_dir = '../Animal'
-    target_nico_dir = '/mnt/disk1/yunzhe/nico'
-
     ##########################################################
     train_val_ratio = 0.05
 
     test_len = 2000
-
-    ##########################################################
-    # 行人检测
-
-    person_index_coco = 0
-    person_index_kitti = 0
-    person_index_crowdhuman = 1
-    person_index_night = 0
-
-    ##########################################################
-    # 数据集地址
-
-    coco_label_train = '/mnt/disk1/yunzhe/coco/labels/train2017/'
-    coco_label_val = '/mnt/disk1/yunzhe/coco/labels/val2017/'
-
-    coco_person_train = '/mnt/disk1/yunzhe/coco/labels/train_person/'
-    coco_person_val = '/mnt/disk1/yunzhe/coco/labels/val_person/'
-
-    kitti_label_train = '/mnt/disk1/yunzhe/kitti/yolo/labels/'
-    kitti_person_train = '/mnt/disk1/yunzhe/kitti/yolo/labels_person/'
-
-    crowdhuman_data_image = '/mnt/disk1/yunzhe/yolov4_crowdhuman/data/crowdhuman-608x608/*.jpg'
-    crowdhuman_data_label = '/mnt/disk1/yunzhe/yolov4_crowdhuman/data/crowdhuman-608x608/*.txt'
-    crowdhuman_person_img_train = '/mnt/disk1/yunzhe/yolov4_crowdhuman/data/yolo/images/train/'
-    crowdhuman_person_label_train = '/mnt/disk1/yunzhe/yolov4_crowdhuman/data/yolo/labels/train/'
-    crowdhuman_person_label_train_converted = '/mnt/disk1/yunzhe/yolov4_crowdhuman/data/yolo/labels_converted/train/'
-
-    night_person_label_train = '/mnt/disk1/yunzhe/NightOwls/labels/train/'
-    night_person_label_train_converted = '/mnt/disk1/yunzhe/NightOwls/labels_p/train/'
-    night_person_label_val = '/mnt/disk1/yunzhe/NightOwls/labels/val/'
-    night_person_label_val_converted = '/mnt/disk1/yunzhe/NightOwls/labels_p/val/'

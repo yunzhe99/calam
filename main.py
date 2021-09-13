@@ -95,7 +95,7 @@ def train_main():
         _model_chooser_list = joblib.load('model_chooser_list.m')
     else:
         _model_chooser_list = model_list_train(model_map, feature_set_train, label_set_train,
-                                               feature_set_val, label_set_val)
+                                            feature_set_val, label_set_val)
     return _model_chooser_list
 
 
@@ -204,7 +204,7 @@ def sample_list_gen():
                         if os.path.exists(label_path) and os.path.getsize(label_path):  # 判断标签存在且非空
                             # print(os.path.getsize(label_path))
                             sample = sample_node(sample_index, file_path, label_path)
-                            sample.feature_getting()  # 抽取特征
+                            # sample.feature_getting()  # 抽取特征
                             sample.sample_evalution()  # 性能验证
                             # print('check result: ', sample.sample_check())
                             sample_list.append(sample)
@@ -248,14 +248,14 @@ def sample_list_gen():
         # break
 
     # print(sample_list[300].feature)
-    joblib.dump(sample_list, 'sample_list_dhd_traffic_all_o.s')
+    joblib.dump(sample_list, 'sample_list_dhd_traffic_all.s')
 
 
 def train_txt_gen():
     #  找到当前效果不好的样本
-    sample_list = joblib.load('sample_list_dhd_traffic_all_o.s')  # 'sample_list_all_14.s'
+    sample_list = joblib.load('sample_list_dhd_traffic_all.s')  # 'sample_list_all_14.s'
     performance_list = []
-    f = open('dhd_train_5_o.txt', 'w')
+    f = open('dhd_train_7.txt', 'w')
     for sample in sample_list:
         performance = np.max(sample.performance)
         print(sample.performance)
@@ -266,7 +266,7 @@ def train_txt_gen():
 
     f.close()
 
-    joblib.dump(performance_list, 'performance_list_4_o.l')
+    joblib.dump(performance_list, 'performance_list_6.l')
     print(len(performance_list))
 
 
@@ -506,8 +506,7 @@ def result_test(force_reload=False):
     models = []
 
     for model_index in range(len(chooser_list)):
-        model = torch.hub.load('ultralytics/yolov5', 'custom', path=Config.weight_list[model_index],
-                               verbose=False)
+        model = torch.hub.load('ultralytics/yolov5', 'custom', path=Config.weight_list[model_index], verbose=False)
         models.append(model)
 
     # models = model_list
@@ -981,21 +980,21 @@ if __name__ == "__main__":
 
     # task_gen()
 
-    # sample_list_gen()
+    sample_list_gen()
 
-    # train_txt_gen()
+    train_txt_gen()
 
-    # # ap_compare()
-    #
+    # ap_compare()
+    
     # unseen_data_detection()
 
     # chooser_gen()
 
     # task_global_attribute()
 
-    result_test(force_reload=False)
-    #
-    metric_calculation()
+    # result_test(force_reload=False)
+    # #
+    # metric_calculation()
 
     # task_global_attribute()
 

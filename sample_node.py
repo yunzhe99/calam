@@ -32,13 +32,13 @@ def box_iou_solve(bbox1, bbox2, mode=True):
         bbox1: 框数据
         bbox2: 框数据
         mode: 框数据表示形式
-              True: xyxy
-              False: xywh
+            True: xyxy
+            False: xywh
 
         IoU的intersection的左上右下顶点: 左上点为
 
         return IoU, (r_bbox1, r_bbox2, inter_bbox)
-             PS：
+            PS：
                 IoU： 交并比值
                 r_bbox1：转换为xyxy形式的bbox1
                 r_bbox2：转换为xyxy形式的r_bbox2
@@ -155,8 +155,7 @@ def performance_evaluation_map(img, label, model):
     class_pred_list = results[:, 5]
 
     for bb_index in range(len(results)):
-        bb = BoundingBox('filename', class_pred_list[bb_index], box_pred_list[bb_index][0], box_pred_list[bb_index][1],
-                         box_pred_list[bb_index][2], box_pred_list[bb_index][3], confidence_list[bb_index])
+        bb = BoundingBox('filename', class_pred_list[bb_index], box_pred_list[bb_index][0], box_pred_list[bb_index][1], box_pred_list[bb_index][2], box_pred_list[bb_index][3], confidence_list[bb_index])
         inference_boxs.append(bb)
 
     # label = np.loadtxt(label).reshape(-1, 5)  # 标签中只有一行的话，需要升维
@@ -216,12 +215,12 @@ def performance_evaluation_map(img, label, model):
     #     return 0
 
 
-# model_list = []
-#
-# for weight_index in range(len(Config.weight_list)):
-#     weight = Config.weight_list[weight_index]
-#     model = torch.hub.load('ultralytics/yolov5', 'custom', path=weight, verbose=False)
-#     model_list.append(model)
+model_list = []
+
+for weight_index in range(len(Config.weight_list)):
+    weight = Config.weight_list[weight_index]
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path=weight, verbose=False)
+    model_list.append(model)
 
 
 class sample_node:
@@ -233,10 +232,8 @@ class sample_node:
         # 各个模型在该样本上的表现
         self.performance = np.empty(len(Config.weight_list))
         self.performance.fill(-1)
-        self.transform = transforms.Compose([transforms.Resize(256),  # 将图像调整为256×256像素
-                                             transforms.CenterCrop(224),  # 将图像中心裁剪出来，大小为224×224像素
-                                             transforms.ToTensor()  # 将图像转换为PyTorch张量（tensor）数据类型
-                                             ])
+        self.model_set = Config.weight_list
+        self.transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224),transforms.ToTensor()])
 
     def feature_getting(self):
         img = Image.open(self.img_dir)

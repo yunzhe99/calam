@@ -5,7 +5,7 @@ import random
 
 import numpy as np
 from PIL import Image
-from imagecorruptions import corrupt
+# from imagecorruptions import corrupt
 from torch.utils.data import Dataset
 from torchvision import transforms
 from tqdm import tqdm
@@ -18,9 +18,9 @@ class coco_c(Dataset):
         self.files = glob.glob(root_dir)
         self.size = size
         self.transform = transforms.Compose([transforms.Resize(256),  # 将图像调整为256×256像素
-                                             transforms.CenterCrop(224),  # 将图像中心裁剪出来，大小为224×224像素
-                                             transforms.ToTensor()  # 将图像转换为PyTorch张量（tensor）数据类型
-                                             ])
+                                            transforms.CenterCrop(224),  # 将图像中心裁剪出来，大小为224×224像素
+                                            transforms.ToTensor()  # 将图像转换为PyTorch张量（tensor）数据类型
+                                            ])
 
     def __len__(self):
         return len(self.files)
