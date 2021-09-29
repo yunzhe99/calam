@@ -215,12 +215,12 @@ def performance_evaluation_map(img, label, model):
     #     return 0
 
 
-model_list = []
+# model_list = []
 
-for weight_index in range(len(Config.weight_list)):
-    weight = Config.weight_list[weight_index]
-    model = torch.hub.load('ultralytics/yolov5', 'custom', path=weight, verbose=False)
-    model_list.append(model)
+# for weight_index in range(len(Config.weight_list)):
+#     weight = Config.weight_list[weight_index]
+#     model = torch.hub.load('ultralytics/yolov5', 'custom', path=weight, verbose=False)
+#     model_list.append(model)
 
 
 class sample_node:
@@ -263,13 +263,17 @@ class sample_node:
         else:
             return False
 
+    def feature_update(self, feature_extractor):
+        self.feature = feature_extractor(self.img_dir)
+
 
 class sample_feature(Dataset):
-    def __init__(self, sample_list, weight_index, need_image=False):
+    def __init__(self, sample_list, weight_index, need_image=False, classify=False):
         self.sample_list = sample_list
         self.weight_index = weight_index
         self.need_image = need_image
         self.transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224), transforms.ToTensor()])
+        self.classify = classify
 
     def __len__(self):
         return len(self.sample_list)
@@ -278,6 +282,13 @@ class sample_feature(Dataset):
 
         feature = self.sample_list[idx].feature
         label = float(self.sample_list[idx].performance[self.weight_index])
+
+        if self.classify is True:
+            if label > 0.8:
+                label = float(1)
+            else:
+                label = float(0)
+
         if self.need_image is False:
             return feature, label
         else:

@@ -38,7 +38,7 @@ class Config:
     sample_val = '../coco_c/classify_folder_val_mini/*.jpg'
 
     # batch大小
-    batch_size = 64
+    batch_size = 128
 
     # 代表集样本及标签
     sample_set = '/yolov5/data/sample.yaml'
@@ -189,6 +189,6 @@ class Config:
     yaml_dir = 'base_model/test.yaml'
 
     ##########################################################
-    train_val_ratio = 0.05
+    train_val_ratio = 0.7
 
     test_len = 2000

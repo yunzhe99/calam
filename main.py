@@ -9,6 +9,7 @@ import torch
 import collections
 
 import numpy as np
+import pandas as pd
 
 from tqdm import tqdm
 from torch.utils.data import DataLoader
@@ -20,11 +21,12 @@ from my_utils.preprocess import feature_getting
 from task_model import model_list_train, Net, train_from_feature, train_from_image
 from sample_node import sample_node, sample_feature
 from test_batch_loader import test_batch_loader, load_label
+from sample_node import performance_evaluation_map
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
-def sample_list_gen():
+def sample_list_gen(task_folder_list, task_label_list):
     # sample generation
 
     sample_index = 0
@@ -109,16 +111,29 @@ def train_txt_gen():
     #  找到当前效果不好的样本
     sample_list = joblib.load('sample_list_dhd_traffic_all.s')  # 'sample_list_all_14.s'
     performance_list = []
+    performance_all = []
     f = open('dhd_train_7.txt', 'w')
     for sample in sample_list:
         performance = np.max(sample.performance)
-        print(sample.performance)
+        # print(sample.performance)
         performance_list.append(performance)
+        performance_all.append(sample.performance)
         if performance < 0.8:
-            print(sample.img_dir)
+            # print(sample.img_dir)
             f.write(sample.img_dir + '\n')
 
     f.close()
+
+    print(sample_list[1020].img_dir)
+
+    # performance_all = np.array(performance_all)
+
+    # #字典中的key值即为csv中列名
+    # dataframe = pd.DataFrame({'0':performance_all[:,0], '1':performance_all[:,1], '2':performance_all[:,2], '3':performance_all[:,3], '4':performance_all[:,4], '5':performance_all[:,5], '6':performance_all[:,6]})
+
+    # #将DataFrame存储为csv,index表示是否显示行名，default=True
+    # dataframe.to_csv("test.csv",index=False,sep=',')
+
 
     joblib.dump(performance_list, 'performance_list_6.l')
     print(len(performance_list))
@@ -132,28 +147,32 @@ def chooser_gen():
 
     print(length)
 
-    print(len(sample_list[0].performance))
-
     # 在代表集中区分训练集和验证集
 
     train_split_index = int(length * Config.train_val_ratio)
 
+    print(train_split_index)
+
     train_sample_list = sample_list[:train_split_index]
     val_sample_list = sample_list[train_split_index:]
+
+    print(len(val_sample_list))
 
     chooser_list = []
 
     # 生成模型选择器：神经网络方案
     for task_index in range(len(Config.weight_list)):  # len(Config.dataset_train_list)
 
-        train_sample = sample_feature(train_sample_list, task_index, need_image=True)
+        train_sample = sample_feature(train_sample_list, task_index, need_image=True, classify=True)
         train_sample_loader = DataLoader(train_sample, batch_size=Config.batch_size, shuffle=True)
 
-        val_sample = sample_feature(val_sample_list, task_index, need_image=True)
+        val_sample = sample_feature(val_sample_list, task_index, need_image=True, classify=True)
         val_sample_loader = DataLoader(val_sample, batch_size=Config.batch_size, shuffle=True)
 
-        chooser = train_from_feature(train_sample_loader, val_sample_loader)
-        # chooser = train_from_image(train_sample_loader, val_sample_loader)
+        print(val_sample_loader.__len__())
+
+        # chooser = train_from_feature(train_sample_loader, val_sample_loader)
+        chooser = train_from_image(train_sample_loader, val_sample_loader)
         print('\n')
 
         chooser_list.append(chooser)
@@ -821,17 +840,24 @@ def unseen_data_detection():
     joblib.dump([label, calam_detect, gac_detect, confidence], 'unseen_data.d')
 
 
-if __name__ == "__main__":
+def performance_update(sample_list, model_add):
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_add, verbose=False)
+    for sample in sample_list:
+        performance = performance_evaluation_map(sample.img_dir, sample.label_dir, model)
+        sample.performance = np.append(sample.performance, performance)
+        sample.model_set = np.append(sample.model_set, model_add)
 
-    # 数据集地址
-    task_folder_list = Config.dataset_train_list
-    task_label_list = Config.labelset_train_list
+
+if __name__ == "__main__":
 
     # task_gen()
 
-    sample_list_gen()
+    # sample_list_gen(Config.dataset_train_list, Config.labelset_train_list)
 
     train_txt_gen()
+
+    # model_add = '/home/lion/yunzhe/calam/dhd-traffic/round6.pt'
+    # performance_update('sample_list_dhd_traffic_all.s', model_add)
 
     # ap_compare()
     

@@ -136,3 +136,5 @@ dmypy.json
 *.txt
 *.jpg
 *.png
+/output
+*.csv

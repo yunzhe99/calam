@@ -14,7 +14,7 @@ from my_utils.data_io import coco_c, Feature_set
 from my_utils.preprocess import resnet_18_encoder
 from config import Config
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 class Net(nn.Module):
@@ -135,15 +135,19 @@ def train_from_image(train_loader, val_loader):
 
     learning_rate = Config.learning_rate
     epoch_num = Config.epoch_num
-    model = torchvision.models.resnet18(pretrained=True)
+    torch.hub._validate_not_a_forked_repo=lambda a,b,c: True
+    model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+    in_features = model.fc.in_features
+    model.fc = nn.Linear(in_features, 2)
     model = model.cuda()
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
     for epoch in range(epoch_num):
 
         print_loss_list = []
+        model.train()
 
         for data in tqdm(train_loader):
             feature, label = data
@@ -158,18 +162,20 @@ def train_from_image(train_loader, val_loader):
             _, pred = torch.max(out, 1)
 
             # print(torch.sum(pred))
+            # print(pred, label)
 
-            loss = criterion(out, label) + 10 / (torch.sum(pred) + 1)
+            loss = criterion(pred.float(), label.float())
 
             print_loss = loss.data.item()
 
             print_loss_list.append(print_loss)
 
             optimizer.zero_grad()
+            loss = loss.requires_grad_()
             loss.backward()
             optimizer.step()
 
-        test_acc = test_from_image(val_loader, model.state_dict())
+        test_acc = test_from_image(val_loader, model)
 
         # wandb.log({"train_loss": np.mean(np.array(print_loss_list)), "test_acc": test_acc})
 
@@ -277,14 +283,11 @@ def test_from_feature(val_loader, weight):
     #     eval_acc / Config.val_set_len
     # ))
 
-    return eval_acc / Config.val_set_len
+    return eval_acc / Config.val_set_len * Config.batch_size
 
 
-def test_from_image(val_loader, weight):
+def test_from_image(val_loader, model):
 
-    model = torchvision.models.resnet18(pretrained=True)
-    model.load_state_dict(weight)
-    model = model.cuda()
     model.eval()
 
     eval_acc = 0
@@ -301,15 +304,16 @@ def test_from_image(val_loader, weight):
         _, pred = torch.max(out, 1)
 
         # print(torch.sum(pred))
+        # print(pred, label)
 
         num_correct = (pred == label).sum()
         eval_acc += num_correct.item()
 
     print('test acc: {:.6f}'.format(
-        eval_acc / Config.val_set_len
+        eval_acc / val_loader.__len__() * Config.batch_size
     ))
 
-    return eval_acc / Config.val_set_len
+    return eval_acc / val_loader.__len__() * Config.batch_size
 
 
 def model_list_train(model_map, feature_set_train, label_set_train, feature_set_val, label_set_val):
