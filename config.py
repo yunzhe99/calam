@@ -137,7 +137,14 @@ class Config:
     #                './dhd-traffic/traffic-task6-e.pt', './dhd-traffic/traffic-task7-e.pt',
     #                './dhd-traffic/traffic-task8-e.pt']
 
-    weight_list = ['/home/lion/yunzhe/calam/dhd-traffic/traffic-all.pt', '/home/lion/yunzhe/calam/dhd-traffic/round1.pt', '/home/lion/yunzhe/calam/dhd-traffic/round2.pt', '/home/lion/yunzhe/calam/dhd-traffic/round3.pt', '/home/lion/yunzhe/calam/dhd-traffic/round4.pt', '/home/lion/yunzhe/calam/dhd-traffic/round5.pt', '/home/lion/yunzhe/calam/dhd-traffic/round6.pt']
+    weight_list = ['./dhd-traffic/traffic-all-big.pt', 
+                    './dhd-traffic/traffic-all.pt', 
+                    './dhd-traffic/round1.pt', 
+                    './dhd-traffic/round2.pt', 
+                    './dhd-traffic/round3.pt', 
+                    './dhd-traffic/round4.pt', 
+                    './dhd-traffic/round5.pt', 
+                    './dhd-traffic/round6.pt']  # the first one is the big model
 
     # weight_list = ['/home/lion/yunzhe/calam/dhd-traffic/traffic-all.pt',
     #                '/home/lion/yunzhe/calam/dhd-traffic/round1o.pt',

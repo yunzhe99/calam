@@ -1,10 +1,16 @@
 import math
+import joblib
 import torch
 import numpy as np
 from torchviz import make_dot
 from torchvision.models import AlexNet
 from PIL import Image
+from tqdm import tqdm
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
+import seaborn as sns
+
+from featuremap_classify import performance_test
 
 
 def get_featuremap(model):
@@ -45,12 +51,83 @@ def feature_visualization(x, n=32):
         plt.savefig('name')
         plt.close()
 
+    
+def plot_perfect_choosing(sample_list):
+    baseline_result = []
+    perfect_result = []
+    deep_result = []
+    for sample in sample_list:
+        baseline_result.append(sample.performance[1])
+        perfect_result.append(np.max(sample.performance[1:]))
+        deep_result.append(sample.performance[0])
+    print('base result', np.mean(baseline_result))
+    print('perfect result', np.mean(perfect_result))
+    print('deep result', np.mean(deep_result))
+    ecdf_baseline = sm.distributions.ECDF(baseline_result)
+
+    x_baseline = np.linspace(min(baseline_result), max(baseline_result))
+
+    y_baseline = ecdf_baseline(x_baseline)
+
+    plt.step(x_baseline, y_baseline, label='shallow model baseline')
+
+    ecdf_perfect = sm.distributions.ECDF(perfect_result)
+
+    x_perfect = np.linspace(min(perfect_result), max(perfect_result))
+
+    y_perfect = ecdf_perfect(x_perfect)
+
+    plt.step(x_perfect, y_perfect, label='perfect model choosing')
+
+    ecdf_deep = sm.distributions.ECDF(deep_result)
+
+    x_deep = np.linspace(min(deep_result), max(deep_result))
+
+    y_deep = ecdf_deep(x_deep)
+
+    plt.step(x_deep, y_deep, label='deep model baseline')
+
+    plt.legend()
+
+    plt.savefig('perfect_choose.pdf')
+
+
+def performance_heatmap(sample_list):
+    performance_list = []
+    for sample in sample_list[:30]:
+        performance_list.append(sample.performance)
+    sns.heatmap(performance_list, cmap="Greens")
+    plt.savefig('heatmap.pdf')
+
+
+def plot_confidence_heatmap(meta_model='best_classify_5-3.pt'):
+    results = performance_test(meta_model=meta_model)
+    sns.heatmap(results[:30], cmap="Greens")
+    plt.savefig('confidence.pdf')
+
+
+def plot_difference(difference_data='differences.tmp'):
+    differences = joblib.load(difference_data)
+    ecdf = sm.distributions.ECDF(differences)
+
+    x_deep = np.linspace(min(differences), max(differences))
+
+    y_deep = ecdf(x_deep)
+
+    plt.step(x_deep, y_deep)
+    plt.savefig('difference.pdf')
+
+
+def sample_split(sample_dir='sample_list_dhd_traffic_all_with_feature_map.s', split_radio=0.5):
+    sample_list = joblib.load(sample_dir)
+    length = len(sample_list)
+    split_index = int(length * split_radio)
+    sample_part1 = sample_list[:split_index]
+    sample_part2 = sample_list[split_index:]
+    joblib.dump(sample_part1, 'sample_list_dhd_traffic_all_with_feature_map_part1.s')
+    joblib.dump(sample_part2, 'sample_list_dhd_traffic_all_with_feature_map_part2.s')
+    return True
+
 
 if __name__ == "__main__":
-    # model = torch.hub.load('ultralytics/yolov5', 'custom', path='./dhd-traffic/traffic-all.pt', autoshape=False)
-    model = torch.hub.load('ultralytics/yolov5', 'custom', path='./dhd-traffic/traffic-all.pt')
-    x = '/mnt/disk/TJU-DHD/dhd_traffic/valset/images/1496713172731.jpg'
-    feature = model(x)
-    feature_output1 = model.model.featuremap.cpu()
-    print(feature_output1.shape)
-    feature_visualization(feature_output1)
+    plot_difference()

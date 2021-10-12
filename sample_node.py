@@ -1,4 +1,4 @@
-# coding=gbk
+
 import os
 import torch
 import numpy as np
@@ -15,9 +15,17 @@ from my_utils.preprocess import resnet_18_encoder
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
+# model_list = []
+
+# for weight_index in range(len(Config.weight_list)):
+#     weight = Config.weight_list[weight_index]
+#     model = torch.hub.load('ultralytics/yolov5', 'custom', path=weight, verbose=False)
+#     model_list.append(model)
+
+
 def bbox_2leftup_2rightdown(bbox):
-    """¼ÆËãbboxµÄ×óÉÏÓÒÏÂ¶¥µã
-        bbox£º¿òÊý¾Ý¡ª¡ªxywh
+    """ï¿½ï¿½ï¿½ï¿½bboxï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¶ï¿½ï¿½ï¿½
+        bboxï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¡ï¿½ï¿½ï¿½xywh
     """
     x1 = bbox[0] - bbox[2] / 2.0
     y1 = bbox[1] - bbox[3] / 2.0
@@ -28,61 +36,61 @@ def bbox_2leftup_2rightdown(bbox):
 
 
 def box_iou_solve(bbox1, bbox2, mode=True):
-    """¼ÆËãÁ½¸ö¿òÖ®¼äµÄIoUÖµ
-        bbox1: ¿òÊý¾Ý
-        bbox2: ¿òÊý¾Ý
-        mode: ¿òÊý¾Ý±íÊ¾ÐÎÊ½
+    """ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½ï¿½IoUÖµ
+        bbox1: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        bbox2: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        mode: ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½Ê¾ï¿½ï¿½Ê½
             True: xyxy
             False: xywh
 
-        IoUµÄintersectionµÄ×óÉÏÓÒÏÂ¶¥µã: ×óÉÏµãÎª
+        IoUï¿½ï¿½intersectionï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¶ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½Ïµï¿½Îª
 
         return IoU, (r_bbox1, r_bbox2, inter_bbox)
-            PS£º
-                IoU£º ½»²¢±ÈÖµ
-                r_bbox1£º×ª»»ÎªxyxyÐÎÊ½µÄbbox1
-                r_bbox2£º×ª»»ÎªxyxyÐÎÊ½µÄr_bbox2
-                inter_bbox: ÐÎÊ½ÎªxyxyµÄ½»¼¯Î»ÖÃ
+            PSï¿½ï¿½
+                IoUï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
+                r_bbox1ï¿½ï¿½×ªï¿½ï¿½Îªxyxyï¿½ï¿½Ê½ï¿½ï¿½bbox1
+                r_bbox2ï¿½ï¿½×ªï¿½ï¿½Îªxyxyï¿½ï¿½Ê½ï¿½ï¿½r_bbox2
+                inter_bbox: ï¿½ï¿½Ê½Îªxyxyï¿½Ä½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
     """
-    if mode is True:  # bboxÊý¾Ý¸ñÊ½: xyxy
-        # ×óÉÏÓÒÏÂ¶¥µã×ø±ê
+    if mode is True:  # bboxï¿½ï¿½ï¿½Ý¸ï¿½Ê½: xyxy
+        # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         b1_x1, b1_y1, b1_x2, b1_y2 = bbox1[0], bbox1[1], bbox1[2], bbox1[3]
         b2_x1, b2_y1, b2_x2, b2_y2 = bbox2[0], bbox2[1], bbox2[2], bbox2[3]
-        # ¿òµÄ³¤¿í:³¤¶ÈÓÉ¾ßÌåµÄÏñËØ¸öÊý¾ö¶¨£¬Òò´ËÐèÒª¼Ó1
+        # ï¿½ï¿½Ä³ï¿½ï¿½ï¿?:ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½1
         b1_w, b1_h = bbox1[2] - bbox1[0] + 1.0, bbox1[3] - bbox1[1] + 1.0
         b2_w, b2_h = bbox2[2] - bbox2[0] + 1.0, bbox1[3] - bbox1[1] + 1.0
-    else:  # bboxÊý¾Ý¸ñÊ½: xywh
-        # ×óÉÏÓÒÏÂ¶¥µã×ø±ê
+    else:  # bboxï¿½ï¿½ï¿½Ý¸ï¿½Ê½: xywh
+        # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         b1_x1, b1_y1, b1_x2, b1_y2 = bbox_2leftup_2rightdown(bbox1)
         b2_x1, b2_y1, b2_x2, b2_y2 = bbox_2leftup_2rightdown(bbox2)
-        # ¿òµÄ³¤¿í
+        # ï¿½ï¿½Ä³ï¿½ï¿½ï¿?
         b1_w, b1_h = bbox1[2], bbox1[3]
         b2_w, b2_h = bbox2[2], bbox2[3]
 
-    # ¸÷×ÔµÄÃæ»ý
+    # ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ï¿?
     s1 = b1_w * b1_h
     s2 = b2_w * b2_h
 
-    # ½»¼¯Ãæ»ý
-    # Èç¹û¿¼ÂÇ¶à¸ö¿ò½øÐÐ¼ÆËã½»¼¯¡ª¡ªÄÇÃ´Ó¦¸ÃÊ¹ÓÃnp.maximum¡ª¡ª½øÐÐÖðÎ»±È½Ï
-    inter_x1 = max(b1_x1, b2_x1)  # ½»¼¯ÇøÓòµÄ×óÉÏ½Ç
+    # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿?
+    # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ã½»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã´Ó¦ï¿½ï¿½Ê¹ï¿½ï¿½np.maximumï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½È½ï¿½
+    inter_x1 = max(b1_x1, b2_x1)  # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï½ï¿?
     inter_y1 = max(b1_y1, b2_y1)
-    inter_x2 = min(b1_x2, b2_x2)  # ½»¼¯ÇøÓòµÄÓÒÏÂ½Ç
+    inter_x2 = min(b1_x2, b2_x2)  # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â½ï¿?
     inter_y2 = min(b1_y2, b2_y2)
 
-    # ³¤¶ÈÓÉ¾ßÌåµÄÏñËØ¸öÊý¾ö¶¨£¬Òò´ËÐèÒª¼Ó1£»ÕâÀï¸øµÄÊÇ¹éÒ»»¯µÄÖµ£¬Òò´Ë²»¼Ó1
+    # ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¹ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½Ë²ï¿½ï¿½ï¿½1
     inter_w = max(inter_x2 - inter_x1, 0)
     inter_h = max(inter_y2 - inter_y1, 0)
     intersection = inter_w * inter_h
 
-    # ²¢¼¯Ãæ»ý
+    # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿?
     union_area = s1 + s2 - intersection
 
-    # ¼ÆËãIoU½»²¢¼¯
+    # ï¿½ï¿½ï¿½ï¿½IoUï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     IoU = intersection / union_area
 
-    # ÕûºÏ×ø±êÐÅÏ¢¡ª¡ªÓÃÓÚÕ¹Ê¾½»¼¯¿ÉÊÓ»¯
-    # ·µ»ØÊý¾Ý¾ùÒÔxyxy±íÊ¾
+    # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó»ï¿½
+    # ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¾ï¿½ï¿½ï¿½xyxyï¿½ï¿½Ê¾
     r_bbox1 = b1_x1, b1_y1, b1_x2, b1_y2
     r_bbox2 = b2_x1, b2_y1, b2_x2, b2_y2
     inter_bbox = inter_x1, inter_y1, inter_x2, inter_y2
@@ -99,14 +107,14 @@ def performance_evaluation(img, label, model):
     confidence_list = results[:, 4]
     class_pred_list = results[:, 5]
 
-    label = np.loadtxt(label).reshape(-1, 5)  # ±êÇ©ÖÐÖ»ÓÐÒ»ÐÐµÄ»°£¬ÐèÒªÉýÎ¬
+    label = np.loadtxt(label).reshape(-1, 5)  # ï¿½ï¿½Ç©ï¿½ï¿½Ö»ï¿½ï¿½Ò»ï¿½ÐµÄ»ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Î¬
 
     box_label_list = label[:, 1:5]
     class_label_list = label[:, 0]
 
     label_num = len(box_label_list)
     pred_num = len(box_pred_list)
-    label_match = np.zeros(label_num)  # ±£´æÃ¿¸ö±êÇ©µÄÆ¥Åä½á¹û£¬Èç¹ûÆ¥ÅäÉÏÁËÔòÏàÓ¦Î»ÖÃ1
+    label_match = np.zeros(label_num)  # ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½Ç©ï¿½ï¿½Æ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦Î»ï¿½ï¿?1
 
     for label_index in range(label_num):
         box_label = box_label_list[label_index]
@@ -158,7 +166,7 @@ def performance_evaluation_map(img, label, model):
         bb = BoundingBox('filename', class_pred_list[bb_index], box_pred_list[bb_index][0], box_pred_list[bb_index][1], box_pred_list[bb_index][2], box_pred_list[bb_index][3], confidence_list[bb_index])
         inference_boxs.append(bb)
 
-    # label = np.loadtxt(label).reshape(-1, 5)  # ±êÇ©ÖÐÖ»ÓÐÒ»ÐÐµÄ»°£¬ÐèÒªÉýÎ¬
+    # label = np.loadtxt(label).reshape(-1, 5)  # ï¿½ï¿½Ç©ï¿½ï¿½Ö»ï¿½ï¿½Ò»ï¿½ÐµÄ»ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Î¬
     #
     # box_label_list = label[:, 1:5]
     # class_label_list = label[:, 0]
@@ -190,7 +198,7 @@ def performance_evaluation_map(img, label, model):
     class_num = 0
 
     for class_index in ret:
-        if not np.isnan(ret[class_index].ap):  # Èç¹ûÔ¤²â³öÁËÊý¾Ý¼¯ÒÔÍâµÄÀà£¬ÄÇÃ´¾Í»á³öÏÖnan
+        if not np.isnan(ret[class_index].ap):  # ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à£¬ï¿½ï¿½Ã´ï¿½Í»ï¿½ï¿½ï¿½ï¿½nan
             ap_total = ap_total + ret[class_index].ap
             class_num = class_num + 1
 
@@ -215,21 +223,12 @@ def performance_evaluation_map(img, label, model):
     #     return 0
 
 
-# model_list = []
-
-# for weight_index in range(len(Config.weight_list)):
-#     weight = Config.weight_list[weight_index]
-#     model = torch.hub.load('ultralytics/yolov5', 'custom', path=weight, verbose=False)
-#     model_list.append(model)
-
-
 class sample_node:
     def __init__(self, index, img_dir, label_dir):
         self.index = index
         self.img_dir = img_dir
         self.label_dir = label_dir
         self.feature = None
-        # ¸÷¸öÄ£ÐÍÔÚ¸ÃÑù±¾ÉÏµÄ±íÏÖ
         self.performance = np.empty(len(Config.weight_list))
         self.performance.fill(-1)
         self.model_set = Config.weight_list
@@ -240,7 +239,7 @@ class sample_node:
 
         if img.mode == 'L':
             img = [img, img, img]
-            img = Image.merge("RGB", img)  # ºÏ²¢ÈýÍ¨µÀ
+            img = Image.merge("RGB", img)  # ï¿½Ï²ï¿½ï¿½ï¿½Í¨ï¿½ï¿½
 
         img = self.transform(img)
         img = img.unsqueeze(0)
